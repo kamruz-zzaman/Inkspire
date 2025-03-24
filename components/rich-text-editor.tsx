@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Bold,
   Italic,
@@ -26,51 +26,67 @@ import {
   Heading2,
   Heading3,
   AtSign,
-} from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
-export interface RichTextEditorProps {
-  initialValue?: string
-  onChange?: (value: string) => void
-  onImageUpload?: (file: File) => Promise<string>
-  placeholder?: string
-  uploadEndpoint?: string
-  staticMode?: boolean
-  height?: string
-  className?: string
-  mentionUsers?: Array<{ id: string; name: string; avatar?: string }>
-  onMention?: (userId: string) => void
+export interface InkspireEditorProps {
+  initialValue?: string;
+  onChange?: (value: string) => void;
+  onImageUpload?: (file: File) => Promise<string>;
+  placeholder?: string;
+  uploadEndpoint?: string;
+  staticMode?: boolean;
+  height?: string;
+  className?: string;
+  mentionUsers?: Array<{ id: string; name: string; avatar?: string }>;
+  onMention?: (userId: string) => void;
   toolbarOptions?: {
-    basic?: boolean
-    formatting?: boolean
-    alignment?: boolean
-    lists?: boolean
-    media?: boolean
-    link?: boolean
-    code?: boolean
-    colors?: boolean
-    history?: boolean
-    mention?: boolean
-  }
+    basic?: boolean;
+    formatting?: boolean;
+    alignment?: boolean;
+    lists?: boolean;
+    media?: boolean;
+    link?: boolean;
+    code?: boolean;
+    colors?: boolean;
+    history?: boolean;
+    mention?: boolean;
+  };
 }
 
 interface HistoryItem {
-  html: string
+  html: string;
   selection?: {
-    startContainer: Node
-    startOffset: number
-    endContainer: Node
-    endOffset: number
-  }
+    startContainer: Node;
+    startOffset: number;
+    endContainer: Node;
+    endOffset: number;
+  };
 }
 
-export function RichTextEditor({
+export function InkspireEditor({
   initialValue = "",
   onChange,
   onImageUpload,
@@ -93,42 +109,45 @@ export function RichTextEditor({
     history: true,
     mention: true,
   },
-}: RichTextEditorProps) {
-  const editorRef = useRef<HTMLDivElement>(null)
-  const [linkUrl, setLinkUrl] = useState("")
-  const [showLinkPopover, setShowLinkPopover] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [isUploading, setIsUploading] = useState(false)
-  const [activeStyles, setActiveStyles] = useState<Record<string, boolean>>({})
-  const [textColor, setTextColor] = useState("#000000")
-  const [bgColor, setBgColor] = useState("#ffffff")
-  const [showMentionDropdown, setShowMentionDropdown] = useState(false)
-  const [mentionFilter, setMentionFilter] = useState("")
-  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 })
-  const [history, setHistory] = useState<HistoryItem[]>([])
-  const [historyIndex, setHistoryIndex] = useState(-1)
-  const [isInitialized, setIsInitialized] = useState(false)
-  const [isCodeActive, setIsCodeActive] = useState(false)
-  const mentionDropdownRef = useRef<HTMLDivElement>(null)
-  const isTypingRef = useRef(false)
-  const lastKeyPressRef = useRef("")
+}: InkspireEditorProps) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [showLinkPopover, setShowLinkPopover] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [activeStyles, setActiveStyles] = useState<Record<string, boolean>>({});
+  const [textColor, setTextColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [showMentionDropdown, setShowMentionDropdown] = useState(false);
+  const [mentionFilter, setMentionFilter] = useState("");
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isCodeActive, setIsCodeActive] = useState(false);
+  const mentionDropdownRef = useRef<HTMLDivElement>(null);
+  const isTypingRef = useRef(false);
+  const lastKeyPressRef = useRef("");
 
   // Initialize editor with content
   useEffect(() => {
     if (editorRef.current && !isInitialized) {
-      editorRef.current.innerHTML = initialValue
+      editorRef.current.innerHTML = initialValue;
       // Initialize history with initial content
-      setHistory([{ html: initialValue }])
-      setHistoryIndex(0)
-      setIsInitialized(true)
+      setHistory([{ html: initialValue }]);
+      setHistoryIndex(0);
+      setIsInitialized(true);
     }
-  }, [initialValue, isInitialized])
+  }, [initialValue, isInitialized]);
 
   // Set up event listener for selection changes to update active styles
   useEffect(() => {
     const checkActiveStyles = () => {
-      if (!document.activeElement || !editorRef.current?.contains(document.activeElement)) {
-        return
+      if (
+        !document.activeElement ||
+        !editorRef.current?.contains(document.activeElement)
+      ) {
+        return;
       }
 
       const newActiveStyles: Record<string, boolean> = {
@@ -142,490 +161,509 @@ export function RichTextEditor({
         insertUnorderedList: document.queryCommandState("insertUnorderedList"),
         insertOrderedList: document.queryCommandState("insertOrderedList"),
         createLink: document.queryCommandState("createLink"),
-      }
+      };
 
       // Check if selection is inside a code block
-      const selection = window.getSelection()
+      const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        const preElement = findParentWithTag(range.startContainer, "PRE")
-        setIsCodeActive(!!preElement)
+        const range = selection.getRangeAt(0);
+        const preElement = findParentWithTag(range.startContainer, "PRE");
+        setIsCodeActive(!!preElement);
       }
 
-      setActiveStyles(newActiveStyles)
-    }
+      setActiveStyles(newActiveStyles);
+    };
 
-    document.addEventListener("selectionchange", checkActiveStyles)
+    document.addEventListener("selectionchange", checkActiveStyles);
     return () => {
-      document.removeEventListener("selectionchange", checkActiveStyles)
-    }
-  }, [])
+      document.removeEventListener("selectionchange", checkActiveStyles);
+    };
+  }, []);
 
   // Handle click outside mention dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (mentionDropdownRef.current && !mentionDropdownRef.current.contains(event.target as Node)) {
-        setShowMentionDropdown(false)
+      if (
+        mentionDropdownRef.current &&
+        !mentionDropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowMentionDropdown(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Helper function to find parent element with specific tag
-  const findParentWithTag = (node: Node, tagName: string): HTMLElement | null => {
-    let currentNode: Node | null = node
+  const findParentWithTag = (
+    node: Node,
+    tagName: string
+  ): HTMLElement | null => {
+    let currentNode: Node | null = node;
     while (currentNode) {
-      if (currentNode.nodeType === Node.ELEMENT_NODE && (currentNode as HTMLElement).tagName === tagName) {
-        return currentNode as HTMLElement
+      if (
+        currentNode.nodeType === Node.ELEMENT_NODE &&
+        (currentNode as HTMLElement).tagName === tagName
+      ) {
+        return currentNode as HTMLElement;
       }
-      currentNode = currentNode.parentNode
+      currentNode = currentNode.parentNode;
     }
-    return null
-  }
+    return null;
+  };
 
   // Save current selection state
   const saveSelection = () => {
-    const selection = window.getSelection()
+    const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
+      const range = selection.getRangeAt(0);
       return {
         startContainer: range.startContainer,
         startOffset: range.startOffset,
         endContainer: range.endContainer,
         endOffset: range.endOffset,
-      }
+      };
     }
-    return undefined
-  }
+    return undefined;
+  };
 
   // Restore selection state
   const restoreSelection = (savedSelection: any) => {
     if (savedSelection) {
-      const selection = window.getSelection()
+      const selection = window.getSelection();
       if (selection) {
-        const range = document.createRange()
-        range.setStart(savedSelection.startContainer, savedSelection.startOffset)
-        range.setEnd(savedSelection.endContainer, savedSelection.endOffset)
-        selection.removeAllRanges()
-        selection.addRange(range)
+        const range = document.createRange();
+        range.setStart(
+          savedSelection.startContainer,
+          savedSelection.startOffset
+        );
+        range.setEnd(savedSelection.endContainer, savedSelection.endOffset);
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
     }
-  }
+  };
 
   // Add to history
   const addToHistory = () => {
-    if (!editorRef.current) return
+    if (!editorRef.current) return;
 
-    const currentContent = editorRef.current.innerHTML
-    const currentSelection = saveSelection()
+    const currentContent = editorRef.current.innerHTML;
+    const currentSelection = saveSelection();
 
     // Only add to history if content has changed
     if (history.length === 0 || history[historyIndex].html !== currentContent) {
-      const newHistory = history.slice(0, historyIndex + 1)
-      newHistory.push({ html: currentContent, selection: currentSelection })
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push({ html: currentContent, selection: currentSelection });
 
       // Limit history size to prevent memory issues
       if (newHistory.length > 100) {
-        newHistory.shift()
+        newHistory.shift();
       }
 
-      setHistory(newHistory)
-      setHistoryIndex(newHistory.length - 1)
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
     }
-  }
+  };
 
   // Debounced version of addToHistory
-  const debouncedAddToHistory = debounce(addToHistory, 300)
+  const debouncedAddToHistory = debounce(addToHistory, 300);
 
   // Debounce function
   function debounce(func: Function, wait: number) {
-    let timeout: NodeJS.Timeout
+    let timeout: NodeJS.Timeout;
     return function executedFunction(...args: any[]) {
       const later = () => {
-        clearTimeout(timeout)
-        func(...args)
-      }
-      clearTimeout(timeout)
-      timeout = setTimeout(later, wait)
-    }
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
   }
 
   const handleContentChange = () => {
     if (editorRef.current && onChange) {
-      onChange(editorRef.current.innerHTML)
+      onChange(editorRef.current.innerHTML);
 
       if (!isTypingRef.current) {
-        debouncedAddToHistory()
+        debouncedAddToHistory();
       }
     }
-  }
+  };
 
   const execCommand = (command: string, value = "") => {
     // Save current state to history before executing command
-    addToHistory()
+    addToHistory();
 
-    document.execCommand(command, false, value)
-    handleContentChange()
+    document.execCommand(command, false, value);
+    handleContentChange();
 
     // Update active styles after command execution
     const newActiveStyles = {
       ...activeStyles,
       [command]: document.queryCommandState(command),
-    }
-    setActiveStyles(newActiveStyles)
+    };
+    setActiveStyles(newActiveStyles);
 
     if (editorRef.current) {
-      editorRef.current.focus()
+      editorRef.current.focus();
     }
-  }
+  };
 
   const handleUndo = () => {
     if (historyIndex > 0) {
-      const newIndex = historyIndex - 1
-      setHistoryIndex(newIndex)
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
 
       if (editorRef.current) {
-        editorRef.current.innerHTML = history[newIndex].html
+        editorRef.current.innerHTML = history[newIndex].html;
 
         // Restore selection if available
         if (history[newIndex].selection) {
           setTimeout(() => {
-            restoreSelection(history[newIndex].selection)
-          }, 0)
+            restoreSelection(history[newIndex].selection);
+          }, 0);
         }
 
         if (onChange) {
-          onChange(history[newIndex].html)
+          onChange(history[newIndex].html);
         }
       }
     }
-  }
+  };
 
   const handleRedo = () => {
     if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1
-      setHistoryIndex(newIndex)
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
 
       if (editorRef.current) {
-        editorRef.current.innerHTML = history[newIndex].html
+        editorRef.current.innerHTML = history[newIndex].html;
 
         // Restore selection if available
         if (history[newIndex].selection) {
           setTimeout(() => {
-            restoreSelection(history[newIndex].selection)
-          }, 0)
+            restoreSelection(history[newIndex].selection);
+          }, 0);
         }
 
         if (onChange) {
-          onChange(history[newIndex].html)
+          onChange(history[newIndex].html);
         }
       }
     }
-  }
+  };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0) return
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    const file = files[0]
-    setIsUploading(true)
-    setUploadProgress(0)
+    const file = files[0];
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
       // If custom upload handler is provided, use it
       if (onImageUpload) {
-        const url = await onImageUpload(file)
-        insertImage(url)
-        setIsUploading(false)
-        return
+        const url = await onImageUpload(file);
+        insertImage(url);
+        setIsUploading(false);
+        return;
       }
 
       if (staticMode) {
         // Static mode: Use FileReader to create a data URL
-        await handleStaticUpload(file)
+        await handleStaticUpload(file);
       } else {
         // Dynamic mode: Try server upload first, fall back to static if it fails
         try {
-          await handleServerUpload(file)
+          await handleServerUpload(file);
         } catch (error) {
-          console.error("Server upload failed, falling back to static mode:", error)
+          console.error(
+            "Server upload failed, falling back to static mode:",
+            error
+          );
           // Fall back to static mode if server upload fails
-          await handleStaticUpload(file)
+          await handleStaticUpload(file);
         }
       }
     } catch (error) {
-      console.error("Error uploading file:", error)
-      setIsUploading(false)
-      alert("Failed to upload image. Please try again.")
+      console.error("Error uploading file:", error);
+      setIsUploading(false);
+      alert("Failed to upload image. Please try again.");
     }
-  }
+  };
 
   // Insert image at current selection
   const insertImage = (url: string) => {
     // Save to history before inserting
-    addToHistory()
+    addToHistory();
 
-    const selection = window.getSelection()
+    const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      const img = document.createElement("img")
-      img.src = url
-      img.style.maxWidth = "100%"
-      img.alt = "Uploaded image"
+      const range = selection.getRangeAt(0);
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.maxWidth = "100%";
+      img.alt = "Uploaded image";
 
-      range.deleteContents()
-      range.insertNode(img)
+      range.deleteContents();
+      range.insertNode(img);
 
       // Move cursor after the image
-      range.setStartAfter(img)
-      range.setEndAfter(img)
-      selection.removeAllRanges()
-      selection.addRange(range)
+      range.setStartAfter(img);
+      range.setEndAfter(img);
+      selection.removeAllRanges();
+      selection.addRange(range);
 
-      handleContentChange()
+      handleContentChange();
     }
-  }
+  };
 
   // Helper function for static file handling
   const handleStaticUpload = (file: File): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader()
+      const reader = new FileReader();
 
       reader.onprogress = (e) => {
         if (e.lengthComputable) {
-          setUploadProgress(Math.round((e.loaded / e.total) * 100))
+          setUploadProgress(Math.round((e.loaded / e.total) * 100));
         }
-      }
+      };
 
       reader.onload = () => {
         try {
-          const dataUrl = reader.result as string
-          insertImage(dataUrl)
-          setIsUploading(false)
-          setUploadProgress(100)
-          resolve()
+          const dataUrl = reader.result as string;
+          insertImage(dataUrl);
+          setIsUploading(false);
+          setUploadProgress(100);
+          resolve();
         } catch (err) {
-          reject(err)
+          reject(err);
         }
-      }
+      };
 
       reader.onerror = () => {
-        reject(new Error("Error reading file"))
-      }
+        reject(new Error("Error reading file"));
+      };
 
-      reader.readAsDataURL(file)
-    })
-  }
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Helper function for server upload
   const handleServerUpload = async (file: File): Promise<void> => {
-    const formData = new FormData()
-    formData.append("file", file)
+    const formData = new FormData();
+    formData.append("file", file);
 
     try {
       // Use fetch instead of XMLHttpRequest
       const response = await fetch(uploadEndpoint, {
         method: "POST",
         body: formData,
-      })
+      });
 
       // Set upload to 100% when complete
-      setUploadProgress(100)
+      setUploadProgress(100);
 
       // Check if response is ok
       if (!response.ok) {
-        throw new Error(`Server responded with status: ${response.status}`)
+        throw new Error(`Server responded with status: ${response.status}`);
       }
 
       // Try to parse the response as JSON
       try {
-        const contentType = response.headers.get("content-type")
+        const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
-          const data = await response.json()
+          const data = await response.json();
           if (data.url) {
-            insertImage(data.url)
+            insertImage(data.url);
           } else {
-            throw new Error("Response missing URL property")
+            throw new Error("Response missing URL property");
           }
         } else {
           // If not JSON, throw error
-          const text = await response.text()
-          throw new Error(`Server returned non-JSON response: ${text.substring(0, 50)}...`)
+          const text = await response.text();
+          throw new Error(
+            `Server returned non-JSON response: ${text.substring(0, 50)}...`
+          );
         }
       } catch (error) {
-        console.error("Error parsing response:", error)
-        throw error
+        console.error("Error parsing response:", error);
+        throw error;
       }
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const insertLink = () => {
     if (linkUrl) {
       // Save to history before inserting link
-      addToHistory()
+      addToHistory();
 
-      execCommand("createLink", linkUrl)
+      execCommand("createLink", linkUrl);
 
       // Get the newly created link and add target="_blank" attribute
-      const selection = window.getSelection()
+      const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        const linkNode = findParentWithTag(range.commonAncestorContainer, "A")
+        const range = selection.getRangeAt(0);
+        const linkNode = findParentWithTag(range.commonAncestorContainer, "A");
 
         if (linkNode) {
-          linkNode.setAttribute("target", "_blank")
-          linkNode.setAttribute("rel", "noopener noreferrer")
+          linkNode.setAttribute("target", "_blank");
+          linkNode.setAttribute("rel", "noopener noreferrer");
         }
       }
 
-      setLinkUrl("")
-      setShowLinkPopover(false)
+      setLinkUrl("");
+      setShowLinkPopover(false);
     }
-  }
+  };
 
   const removeLink = () => {
     // Save to history before removing link
-    addToHistory()
-    execCommand("unlink")
-  }
+    addToHistory();
+    execCommand("unlink");
+  };
 
   const applyTextColor = (color: string) => {
-    setTextColor(color)
-    execCommand("foreColor", color)
-  }
+    setTextColor(color);
+    execCommand("foreColor", color);
+  };
 
   const applyBgColor = (color: string) => {
-    setBgColor(color)
+    setBgColor(color);
 
     // Custom implementation for background color
-    const selection = window.getSelection()
+    const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       // Save to history before applying background color
-      addToHistory()
+      addToHistory();
 
-      const range = selection.getRangeAt(0)
+      const range = selection.getRangeAt(0);
 
       if (range.collapsed) {
         // If no text is selected, do nothing
-        return
+        return;
       }
 
       // Create a span with the background color
-      const span = document.createElement("span")
-      span.style.backgroundColor = color
+      const span = document.createElement("span");
+      span.style.backgroundColor = color;
 
       // Extract the contents of the range and put them in the span
-      const contents = range.extractContents()
-      span.appendChild(contents)
+      const contents = range.extractContents();
+      span.appendChild(contents);
 
       // Insert the span at the position of the range
-      range.insertNode(span)
+      range.insertNode(span);
 
       // Update selection to include the new span
-      range.selectNode(span)
-      selection.removeAllRanges()
-      selection.addRange(range)
+      range.selectNode(span);
+      selection.removeAllRanges();
+      selection.addRange(range);
 
-      handleContentChange()
+      handleContentChange();
     }
-  }
+  };
 
   const formatBlock = (tag: string) => {
     // Save to history before formatting
-    addToHistory()
+    addToHistory();
 
     if (isCodeActive && tag !== "pre") {
       // If we're in a code block and trying to format to something else,
       // first remove the code block
-      const selection = window.getSelection()
+      const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        const preElement = findParentWithTag(range.startContainer, "PRE")
+        const range = selection.getRangeAt(0);
+        const preElement = findParentWithTag(range.startContainer, "PRE");
 
         if (preElement && preElement.parentNode) {
           // Extract content from pre element
-          const content = preElement.textContent || ""
-          const textNode = document.createTextNode(content)
+          const content = preElement.textContent || "";
+          const textNode = document.createTextNode(content);
 
           // Replace pre with text content
-          preElement.parentNode.replaceChild(textNode, preElement)
+          preElement.parentNode.replaceChild(textNode, preElement);
 
           // Select the new text node
-          range.selectNodeContents(textNode)
-          selection.removeAllRanges()
-          selection.addRange(range)
+          range.selectNodeContents(textNode);
+          selection.removeAllRanges();
+          selection.addRange(range);
 
-          setIsCodeActive(false)
+          setIsCodeActive(false);
         }
       }
     }
 
-    execCommand("formatBlock", `<${tag}>`)
+    execCommand("formatBlock", `<${tag}>`);
 
     // If formatting as code, set code active state
     if (tag === "pre") {
-      setIsCodeActive(true)
+      setIsCodeActive(true);
     }
-  }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Track typing state
-    isTypingRef.current = true
-    lastKeyPressRef.current = e.key
+    isTypingRef.current = true;
+    lastKeyPressRef.current = e.key;
 
     // Handle @ key for mentions
     if (e.key === "@" && toolbarOptions.mention) {
       // Use requestAnimationFrame to ensure DOM has updated
       requestAnimationFrame(() => {
-        const selection = window.getSelection()
+        const selection = window.getSelection();
         if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0)
+          const range = selection.getRangeAt(0);
 
           // Create a temporary span to mark the position
-          const tempSpan = document.createElement("span")
-          tempSpan.id = "mention-position-marker"
-          tempSpan.style.display = "inline"
-          tempSpan.innerHTML = "&#8203;" // Zero-width space
+          const tempSpan = document.createElement("span");
+          tempSpan.id = "mention-position-marker";
+          tempSpan.style.display = "inline";
+          tempSpan.innerHTML = "&#8203;"; // Zero-width space
 
           // Insert the marker at cursor position
-          range.insertNode(tempSpan)
+          range.insertNode(tempSpan);
 
           // Get the position of the marker
-          const marker = document.getElementById("mention-position-marker")
+          const marker = document.getElementById("mention-position-marker");
           if (marker && editorRef.current) {
-            const markerRect = marker.getBoundingClientRect()
-            const editorRect = editorRef.current.getBoundingClientRect()
+            const markerRect = marker.getBoundingClientRect();
+            const editorRect = editorRef.current.getBoundingClientRect();
 
             // Calculate position relative to the viewport
-            const top = markerRect.bottom + window.scrollY
-            const left = markerRect.left + window.scrollX
+            const top = markerRect.bottom + window.scrollY;
+            const left = markerRect.left + window.scrollX;
 
             // Set the dropdown position
             setMentionPosition({
               top: top,
               left: left,
-            })
+            });
 
             // Remove the marker
-            marker.remove()
+            marker.remove();
           }
 
-          setMentionFilter("")
-          setShowMentionDropdown(true)
+          setMentionFilter("");
+          setShowMentionDropdown(true);
         }
-      })
+      });
     }
 
     // Handle Escape key to close mention dropdown
     if (e.key === "Escape" && showMentionDropdown) {
-      setShowMentionDropdown(false)
-      e.preventDefault()
+      setShowMentionDropdown(false);
+      e.preventDefault();
     }
 
     // Handle keyboard shortcuts
@@ -633,29 +671,29 @@ export function RichTextEditor({
       switch (e.key.toLowerCase()) {
         case "z":
           if (!e.shiftKey) {
-            e.preventDefault()
-            handleUndo()
+            e.preventDefault();
+            handleUndo();
           }
-          break
+          break;
         case "y":
-          e.preventDefault()
-          handleRedo()
-          break
+          e.preventDefault();
+          handleRedo();
+          break;
         case "b":
-          e.preventDefault()
-          execCommand("bold")
-          break
+          e.preventDefault();
+          execCommand("bold");
+          break;
         case "i":
-          e.preventDefault()
-          execCommand("italic")
-          break
+          e.preventDefault();
+          execCommand("italic");
+          break;
         case "u":
-          e.preventDefault()
-          execCommand("underline")
-          break
+          e.preventDefault();
+          execCommand("underline");
+          break;
       }
     }
-  }
+  };
 
   const handleKeyUp = (e: React.KeyboardEvent) => {
     // Update active styles
@@ -670,108 +708,113 @@ export function RichTextEditor({
       insertUnorderedList: document.queryCommandState("insertUnorderedList"),
       insertOrderedList: document.queryCommandState("insertOrderedList"),
       createLink: document.queryCommandState("createLink"),
-    }
-    setActiveStyles(newActiveStyles)
+    };
+    setActiveStyles(newActiveStyles);
 
     // Handle mention filtering
     if (showMentionDropdown) {
-      const selection = window.getSelection()
+      const selection = window.getSelection();
       if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        const preCaretRange = range.cloneRange()
-        preCaretRange.selectNodeContents(editorRef.current!)
-        preCaretRange.setEnd(range.endContainer, range.endOffset)
-        const text = preCaretRange.toString()
+        const range = selection.getRangeAt(0);
+        const preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(editorRef.current!);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        const text = preCaretRange.toString();
 
         // Find the text after the last @ symbol
-        const lastAtIndex = text.lastIndexOf("@")
+        const lastAtIndex = text.lastIndexOf("@");
         if (lastAtIndex !== -1) {
-          const filterText = text.substring(lastAtIndex + 1)
-          setMentionFilter(filterText)
+          const filterText = text.substring(lastAtIndex + 1);
+          setMentionFilter(filterText);
         }
       }
     }
 
     // Reset typing state after a short delay
     setTimeout(() => {
-      isTypingRef.current = false
-    }, 100)
-  }
+      isTypingRef.current = false;
+    }, 100);
+  };
 
   const insertMention = (user: { id: string; name: string }) => {
     // Save to history before inserting mention
-    addToHistory()
+    addToHistory();
 
-    const selection = window.getSelection()
+    const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
+      const range = selection.getRangeAt(0);
 
       // Delete the @ and any text after it that was part of the mention
-      const preCaretRange = range.cloneRange()
-      preCaretRange.selectNodeContents(editorRef.current!)
-      preCaretRange.setEnd(range.endContainer, range.endOffset)
-      const text = preCaretRange.toString()
-      const lastAtIndex = text.lastIndexOf("@")
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(editorRef.current!);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      const text = preCaretRange.toString();
+      const lastAtIndex = text.lastIndexOf("@");
 
       if (lastAtIndex !== -1) {
         // Calculate how many characters to delete
-        const charsToDelete = text.length - lastAtIndex
+        const charsToDelete = text.length - lastAtIndex;
 
         // Create a new range for deletion
-        const deleteRange = range.cloneRange()
-        deleteRange.setStart(range.endContainer, range.endOffset - charsToDelete)
-        deleteRange.setEnd(range.endContainer, range.endOffset)
-        deleteRange.deleteContents()
+        const deleteRange = range.cloneRange();
+        deleteRange.setStart(
+          range.endContainer,
+          range.endOffset - charsToDelete
+        );
+        deleteRange.setEnd(range.endContainer, range.endOffset);
+        deleteRange.deleteContents();
 
         // Create mention span
-        const mentionSpan = document.createElement("span")
-        mentionSpan.className = "mention"
-        mentionSpan.contentEditable = "false"
-        mentionSpan.dataset.userId = user.id
-        mentionSpan.style.backgroundColor = "#e8f5fe"
-        mentionSpan.style.color = "#1d9bf0"
-        mentionSpan.style.padding = "0 2px"
-        mentionSpan.style.borderRadius = "3px"
-        mentionSpan.style.margin = "0 1px"
-        mentionSpan.textContent = `@${user.name}`
+        const mentionSpan = document.createElement("span");
+        mentionSpan.className = "mention";
+        mentionSpan.contentEditable = "false";
+        mentionSpan.dataset.userId = user.id;
+        mentionSpan.style.backgroundColor = "#e8f5fe";
+        mentionSpan.style.color = "#1d9bf0";
+        mentionSpan.style.padding = "0 2px";
+        mentionSpan.style.borderRadius = "3px";
+        mentionSpan.style.margin = "0 1px";
+        mentionSpan.textContent = `@${user.name}`;
 
         // Insert the mention span
-        range.insertNode(mentionSpan)
+        range.insertNode(mentionSpan);
 
         // Move cursor after the mention
-        range.setStartAfter(mentionSpan)
-        range.setEndAfter(mentionSpan)
-        selection.removeAllRanges()
-        selection.addRange(range)
+        range.setStartAfter(mentionSpan);
+        range.setEndAfter(mentionSpan);
+        selection.removeAllRanges();
+        selection.addRange(range);
 
         // Insert a space after the mention
-        const spaceNode = document.createTextNode("\u00A0")
-        range.insertNode(spaceNode)
-        range.setStartAfter(spaceNode)
-        range.setEndAfter(spaceNode)
-        selection.removeAllRanges()
-        selection.addRange(range)
+        const spaceNode = document.createTextNode("\u00A0");
+        range.insertNode(spaceNode);
+        range.setStartAfter(spaceNode);
+        range.setEndAfter(spaceNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
 
         // Trigger onChange
-        handleContentChange()
+        handleContentChange();
 
         // Call onMention callback if provided
         if (onMention) {
-          onMention(user.id)
+          onMention(user.id);
         }
       }
     }
 
-    setShowMentionDropdown(false)
+    setShowMentionDropdown(false);
 
     // Focus back on the editor to continue typing
     if (editorRef.current) {
-      editorRef.current.focus()
+      editorRef.current.focus();
     }
-  }
+  };
 
   // Filter users for mention dropdown
-  const filteredUsers = mentionUsers.filter((user) => user.name.toLowerCase().includes(mentionFilter.toLowerCase()))
+  const filteredUsers = mentionUsers.filter((user) =>
+    user.name.toLowerCase().includes(mentionFilter.toLowerCase())
+  );
 
   return (
     <div className={cn("border rounded-md", className)}>
@@ -781,7 +824,12 @@ export function RichTextEditor({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={handleUndo} disabled={historyIndex <= 0}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleUndo}
+                    disabled={historyIndex <= 0}
+                  >
                     <Undo className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -865,7 +913,11 @@ export function RichTextEditor({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => formatBlock("h1")}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => formatBlock("h1")}
+                  >
                     <Heading1 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -876,7 +928,11 @@ export function RichTextEditor({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => formatBlock("h2")}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => formatBlock("h2")}
+                  >
                     <Heading2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -887,7 +943,11 @@ export function RichTextEditor({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => formatBlock("h3")}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => formatBlock("h3")}
+                  >
                     <Heading3 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -898,7 +958,11 @@ export function RichTextEditor({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" onClick={() => formatBlock("blockquote")}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => formatBlock("blockquote")}
+                  >
                     <Quote className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -982,7 +1046,9 @@ export function RichTextEditor({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={activeStyles.insertUnorderedList ? "secondary" : "ghost"}
+                    variant={
+                      activeStyles.insertUnorderedList ? "secondary" : "ghost"
+                    }
                     size="icon"
                     onClick={() => execCommand("insertUnorderedList")}
                   >
@@ -997,7 +1063,9 @@ export function RichTextEditor({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant={activeStyles.insertOrderedList ? "secondary" : "ghost"}
+                    variant={
+                      activeStyles.insertOrderedList ? "secondary" : "ghost"
+                    }
                     size="icon"
                     onClick={() => execCommand("insertOrderedList")}
                   >
@@ -1130,7 +1198,10 @@ export function RichTextEditor({
           <>
             <Popover open={showLinkPopover} onOpenChange={setShowLinkPopover}>
               <PopoverTrigger asChild>
-                <Button variant={activeStyles.createLink ? "secondary" : "ghost"} size="icon">
+                <Button
+                  variant={activeStyles.createLink ? "secondary" : "ghost"}
+                  size="icon"
+                >
                   <LinkIcon className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
@@ -1138,7 +1209,9 @@ export function RichTextEditor({
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <h4 className="font-medium leading-none">Insert Link</h4>
-                    <p className="text-sm text-muted-foreground">Enter the URL for the link</p>
+                    <p className="text-sm text-muted-foreground">
+                      Enter the URL for the link
+                    </p>
                   </div>
                   <div className="grid gap-2">
                     <div className="grid grid-cols-3 items-center gap-4">
@@ -1193,7 +1266,10 @@ export function RichTextEditor({
                   </Button>
                   {isUploading && (
                     <div className="absolute -bottom-1 left-0 w-full h-1 bg-muted">
-                      <div className="h-full bg-primary" style={{ width: `${uploadProgress}%` }}></div>
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
                     </div>
                   )}
                 </div>
@@ -1229,47 +1305,50 @@ export function RichTextEditor({
                   size="icon"
                   onClick={() => {
                     // Insert @ character at current cursor position
-                    execCommand("insertText", "@")
+                    execCommand("insertText", "@");
 
                     // Show mention dropdown
                     requestAnimationFrame(() => {
-                      const selection = window.getSelection()
+                      const selection = window.getSelection();
                       if (selection && selection.rangeCount > 0) {
-                        const range = selection.getRangeAt(0)
+                        const range = selection.getRangeAt(0);
 
                         // Create a temporary span to mark the position
-                        const tempSpan = document.createElement("span")
-                        tempSpan.id = "mention-position-marker"
-                        tempSpan.style.display = "inline"
-                        tempSpan.innerHTML = "&#8203;" // Zero-width space
+                        const tempSpan = document.createElement("span");
+                        tempSpan.id = "mention-position-marker";
+                        tempSpan.style.display = "inline";
+                        tempSpan.innerHTML = "&#8203;"; // Zero-width space
 
                         // Insert the marker at cursor position
-                        range.insertNode(tempSpan)
+                        range.insertNode(tempSpan);
 
                         // Get the position of the marker
-                        const marker = document.getElementById("mention-position-marker")
+                        const marker = document.getElementById(
+                          "mention-position-marker"
+                        );
                         if (marker && editorRef.current) {
-                          const markerRect = marker.getBoundingClientRect()
-                          const editorRect = editorRef.current.getBoundingClientRect()
+                          const markerRect = marker.getBoundingClientRect();
+                          const editorRect =
+                            editorRef.current.getBoundingClientRect();
 
                           // Calculate position relative to the viewport
-                          const top = markerRect.bottom + window.scrollY
-                          const left = markerRect.left + window.scrollX
+                          const top = markerRect.bottom + window.scrollY;
+                          const left = markerRect.left + window.scrollX;
 
                           // Set the dropdown position
                           setMentionPosition({
                             top: top,
                             left: left,
-                          })
+                          });
 
                           // Remove the marker
-                          marker.remove()
+                          marker.remove();
                         }
 
-                        setMentionFilter("")
-                        setShowMentionDropdown(true)
+                        setMentionFilter("");
+                        setShowMentionDropdown(true);
                       }
-                    })
+                    });
                   }}
                 >
                   <AtSign className="h-4 w-4" />
@@ -1305,7 +1384,11 @@ export function RichTextEditor({
           }}
         >
           <Command>
-            <CommandInput placeholder="Search users..." value={mentionFilter} onValueChange={setMentionFilter} />
+            <CommandInput
+              placeholder="Search users..."
+              value={mentionFilter}
+              onValueChange={setMentionFilter}
+            />
             <CommandList>
               {filteredUsers.length === 0 ? (
                 <CommandEmpty>No users found</CommandEmpty>
@@ -1318,7 +1401,11 @@ export function RichTextEditor({
                       className="flex items-center gap-2 p-2 cursor-pointer hover:bg-muted"
                     >
                       {user.avatar ? (
-                        <img src={user.avatar || "/placeholder.svg"} alt={user.name} className="w-6 h-6 rounded-full" />
+                        <img
+                          src={user.avatar || "/placeholder.svg"}
+                          alt={user.name}
+                          className="w-6 h-6 rounded-full"
+                        />
                       ) : (
                         <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs">
                           {user.name.charAt(0).toUpperCase()}
@@ -1334,6 +1421,5 @@ export function RichTextEditor({
         </div>
       )}
     </div>
-  )
+  );
 }
-
